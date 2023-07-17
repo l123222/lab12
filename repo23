@@ -1,0 +1,621 @@
+convex hull
+
+#include <iostream>
+#include <vector>
+using namespace std;
+struct point
+{
+    int x, y;
+};
+bool tochange(point p, point q, point r)
+{
+    int x1 = q.x - p.x;
+    int y1 = q.y - p.y;
+    int x2 = r.x - q.x;
+    int y2 = r.y - q.y;
+    int value = x1 * y2 - y1 * x2;
+    return value > 0;
+}
+void convexhull(point points[], int n)
+{
+    vector<point> hull;
+    int left = 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (points[i].x < points[left].x)
+        {
+            left = i;
+        }
+    }
+    int p = left;
+    do
+    {
+        hull.push_back(points[p]);
+        int q = (p + 1) % n;
+        for (int i = 0; i < n; i++)
+        {
+            if (tochange(points[p], points[q], points[i]))
+            {
+                q = i;
+            }
+        }
+        p = q;
+    } while (p != left);
+    for (int i = 0; i < hull.size(); i++)
+    {
+        cout << hull[i].x << " , " << hull[i].y << endl;
+    }
+}
+int main()
+{
+    point points[7];
+    for(int i = 0;i<7;i++){
+        cin>>points[i].x>>points[i].y;
+    }
+    convexhull(points, 7);
+    return 0;
+}
+*******************************************************************************************************************
+fractional kanp sack
+#include <bits/stdc++.h>
+using namespace std;
+static bool cmp(pair<pair<double, double>, double> a, pair<pair<double, double>, double> b)
+{
+    return a.second > b.second;
+}
+int main()
+{
+    int n, w_kp;
+    cin >> n >> w_kp;
+    vector<pair<pair<double, double>, double>> vec;
+    for (int i = 0; i < n; i++)
+    {
+        double v, w;
+        cin >> v >> w;
+        double vperw = double(v / w);
+        pair<pair<double, double>, double> p = make_pair(make_pair(v, w), vperw);
+        vec.push_back(p);
+    }
+    sort(vec.begin(), vec.end(), cmp);
+    double currweight = 0;
+    double finalvalue = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (currweight + vec.at(i).first.second <= w_kp)
+        {
+            currweight += vec.at(i).first.second;
+            finalvalue += vec.at(i).first.first;
+        }
+        else
+        {
+            double remain = w_kp - currweight;
+            finalvalue += vec.at(i).first.first * ((double)remain / (double)vec.at(i).first.second);
+            break;
+        }
+    }
+    cout << fixed << setprecision(6) << finalvalue << endl;
+    return 0;
+}
+***************************************************************************************************************************8
+activity selection
+#include <bits/stdc++.h>
+using namespace std;
+bool cmp(pair<int, int> a, pair<int, int> b)
+{
+    return (a.second < b.second);
+}
+int main()
+{
+    int n;
+    cin >> n;
+    vector<pair<int, int>> v;
+    for (int i = 0; i < n; i++)
+    {
+        pair<int, int> p;
+        cin >> p.first >> p.second;
+        v.push_back(p);
+    }
+    sort(v.begin(), v.end(), cmp);
+    int end = v[0].second;
+    int count = 1;
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i].first >= end)
+        {
+            count++;
+            end = v[i].second;
+        }
+    }
+    cout << count << endl;
+    return 0;
+}
+********************************************************************************************************************
+0/1 knapsack
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int knapsackUtil(vector<int> &wt, vector<int> &val, int ind, int W, vector<vector<int>> &dp)
+{
+
+    if (ind == 0)
+    {
+        if (wt[0] <= W)
+            return val[0];
+        else
+            return 0;
+    }
+
+    if (dp[ind][W] != -1)
+        return dp[ind][W];
+
+    int notTaken = 0 + knapsackUtil(wt, val, ind - 1, W, dp);
+
+    int taken = INT_MIN;
+    if (wt[ind] <= W)
+        taken = val[ind] + knapsackUtil(wt, val, ind - 1, W - wt[ind], dp);
+
+    return dp[ind][W] = max(notTaken, taken);
+}
+
+int knapsack(vector<int> &wt, vector<int> &val, int n, int W)
+{
+
+    vector<vector<int>> dp(n, vector<int>(W + 1, -1));
+    return knapsackUtil(wt, val, n - 1, W, dp);
+}
+
+int main()
+{
+
+    vector<int> wt = {1, 2, 4, 5};
+    vector<int> val = {5, 4, 8, 6};
+    int W = 5;
+
+    int n = wt.size();
+
+    cout << "The Maximum value of items, thief can steal is " << knapsack(wt, val, n, W);
+}
+*********************************************************************************************************************8888
+ford fulkerson
+
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+
+using namespace std;
+
+int bfs(int source, int sink, vector<int> &parent, vector<vector<int>> &residualGraph)
+{
+    fill(parent.begin(), parent.end(), -1);
+    int V = residualGraph.size();
+    parent[source] = -2;
+    queue<pair<int, int>> q;
+    q.push({source, INT_MAX});
+
+    while (!q.empty())
+    {
+        int u = q.front().first;
+        int capacity = q.front().second;
+        q.pop();
+        for (int v = 0; v < V; v++)
+        {
+            if (u != v && parent[v] == -1 && residualGraph[u][v] != -1)
+            {
+                parent[v] = u;
+                int min_cap = min(capacity, residualGraph[u][v]);
+                if (v == sink)
+                    return min_cap;
+                q.push({v, min_cap});
+            }
+        }
+    }
+    return 0;
+}
+
+int ford_fulkerson(vector<vector<int>> &graph, int source, int sink)
+{
+    vector<int> parent(graph.size(), -1);
+    vector<vector<int>> residualGraph = graph;
+    int min_cap = 0, max_flow = 0;
+    while ((min_cap = bfs(source, sink, parent, residualGraph)) != 0)
+    {
+        max_flow += min_cap;
+        int u = sink;
+        while (u != source)
+        {
+            int v = parent[u];
+            residualGraph[u][v] += min_cap;
+            residualGraph[v][u] -= min_cap;
+            u = v;
+        }
+    }
+    return max_flow;
+}
+
+int main()
+{
+    int V;
+    cout << "Enter the number of vertices: ";
+    cin >> V;
+
+    vector<vector<int>> graph(V, vector<int>(V, -1));
+
+    cout << "Enter the adjacency matrix:\n";
+    for (int i = 0; i < V; i++)
+    {
+        for (int j = 0; j < V; j++)
+        {
+            cin >> graph[i][j];
+        }
+    }
+
+    int source, sink;
+    cout << "Enter the source vertex: ";
+    cin >> source;
+    cout << "Enter the sink vertex: ";
+    cin >> sink;
+
+    cout << "Maximum Flow: " << ford_fulkerson(graph, source, sink) << endl;
+
+    return 0;
+}
+**************************************************************************************************************************
+maxsubarray
+
+#include <iostream>
+#include <climits>
+#include <algorithm>
+#include <vector>
+using namespace std;
+void getsum(vector<int> v, int s, int e, int &maxsum, int &si, int &ei)
+{
+    if (s == e)
+    {
+        maxsum = v[s];
+        si = s;
+        ei = e;
+        return;
+    }
+    int leftmaxsum, ls, le;
+    int mid = s + (e - s) / 2;
+    getsum(v, s, mid, leftmaxsum, ls, le);
+    int rightmaxsum, rs, re;
+    getsum(v, mid + 1, e, rightmaxsum, rs, re);
+    int sum = 0;
+    int os, oe;
+    int lsum = INT_MIN;
+    int rsum = INT_MIN;
+    for (int i = mid; i >= s; i--)
+    {
+        sum += v[i];
+        if (sum > lsum)
+        {
+            lsum = sum;
+            os = i;
+        }
+    }
+    sum = 0;
+    for (int i = mid + 1; i <= e; i++)
+    {
+        sum += v[i];
+        if (sum > rsum)
+        {
+            rsum = sum;
+            oe = i;
+        }
+    }
+    int oversum = lsum + rsum;
+    if (leftmaxsum >= rightmaxsum && leftmaxsum >= oversum)
+    {
+        maxsum = leftmaxsum;
+        si = ls;
+        ei = le;
+    }
+    else if (rightmaxsum >= leftmaxsum && rightmaxsum >= oversum)
+    {
+        maxsum = rightmaxsum;
+        si = rs;
+        ei = re;
+    }
+    else
+    {
+        maxsum = oversum;
+        si = os;
+        ei = oe;
+    }
+}
+int maxsumans(vector<int> v, int s, int e, int &si, int &ei)
+{
+    int maxsum = 0;
+    getsum(v, 0, v.size() - 1, maxsum, si, ei);
+    return maxsum;
+}
+
+int main()
+{
+    vector<int> v;
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++)
+    {
+        int x;
+        cin >> x;
+        v.push_back(x);
+    }
+    int start, end;
+    int maxsum = maxsumans(v, 0, v.size() - 1, start, end);
+    cout << maxsum << endl;
+    cout << "starting index of max subarray = " << start << endl;
+    cout << "ending index of max subarray = " << end << endl;
+    return 0;
+}
+*****************************************************************************************************************88
+quick sort
+
+#include <iostream>
+#include <cstdlib> // for rand() and srand()
+#include <ctime>   // for time()
+using namespace std;
+int randomPartition(int arr[], int s, int e)
+{
+    int randomIndex = s + rand() % (e - s + 1);
+    swap(arr[randomIndex], arr[s]); // Swap the randomly chosen element with the first element
+    int pivot = arr[s];
+
+    int cnt = 0;
+    for (int i = s + 1; i <= e; i++)
+    {
+        if (arr[i] <= pivot)
+        {
+            cnt++;
+        }
+    }
+    int pivotIndex = s + cnt;
+    swap(arr[pivotIndex], arr[s]);
+    int i = s, j = e;
+    while (i < pivotIndex && j > pivotIndex)
+    {
+
+        while (arr[i] <= pivot)
+        {
+            i++;
+        }
+
+        while (arr[j] > pivot)
+        {
+            j--;
+        }
+
+        if (i < pivotIndex && j > pivotIndex)
+        {
+            swap(arr[i++], arr[j--]);
+        }
+    }
+    return pivotIndex;
+}
+
+void quickSort(int arr[], int s, int e)
+{
+    if (s >= e)
+        return;
+    int p = randomPartition(arr, s, e);
+    quickSort(arr, s, p - 1);
+    quickSort(arr, p + 1, e);
+}
+
+int main()
+{
+    int arr[10];
+    for (int i = 0; i < 10; i++)
+    {
+        cin >> arr[i];
+    }
+    int n = 10;
+    srand(time(0));
+    quickSort(arr, 0, n - 1);
+    for (int i = 0; i < n; i++)
+    {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+    return 0;
+}
+
+*************************************************************************************************************
+rod cutting
+
+#include <vector>
+#include <iostream>
+#include <climits>
+#include <algorithm>
+using namespace std;
+int getmaxval(int ind, int n, vector<int> &price, vector<vector<int>> &dp)
+{
+    if (ind == 0)
+    {
+        return n * price[0];
+    }
+    if (dp[ind][n] != -1)
+    {
+        return dp[ind][n];
+    }
+    int not_take = 0 + getmaxval(ind - 1, n, price, dp);
+    int take = INT_MIN;
+    int rodlength = ind + 1;
+    if (rodlength <= n)
+    {
+        take = price[ind] + getmaxval(ind, n - rodlength, price, dp);
+    }
+    return dp[ind][n] = max(take, not_take);
+}
+int cutRod(vector<int> &price, int n)
+{
+    vector<vector<int>> dp(n, vector<int>(n + 1, -1));
+    return getmaxval(price.size() - 1, n, price, dp);
+}
+int main()
+{
+    vector<int> price = {2, 5, 7, 8, 10};
+    int n = price.size();
+    cout << "max price = " << cutRod(price, n);
+    return 0;
+}
+**********************************************************************************************************************88
+flyod warshall
+
+#include <iostream>
+#include <vector>
+using namespace std;
+int main()
+{
+    int v;
+    cout << "enter number of vertex: ";
+    cin >> v;
+    vector<vector<int>> matrix(v, vector<int>(v));
+    cout << "enter adjancecy matrix: " << endl;
+    for (int i = 0; i < v; i++)
+    {
+        for (int j = 0; j < v; j++)
+        {
+            cin >> matrix[i][j];
+        }
+    }
+    cout << "Input matrix: " << endl;
+    for (int i = 0; i < v; i++)
+    {
+        for (int j = 0; j < v; j++)
+        {
+            cout << matrix[i][j] << "  ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    for (int i = 0; i < v; i++)
+    {
+        for (int j = 0; j < v; j++)
+        {
+            if (matrix[i][j] == -1)
+
+            {
+                matrix[i][j] = 1e9;
+            }
+        }
+    }
+    for (int via = 0; via < v; via++)
+    {
+        for (int i = 0; i < v; i++)
+        {
+            for (int j = 0; j < v; j++)
+            {
+                if (matrix[i][via] == 1e9 || matrix[via][j] == 1e9)
+                {
+                    continue;
+                }
+                matrix[i][j] = min(matrix[i][j], matrix[i][via] + matrix[via][j]);
+            }
+        }
+    }
+    for (int i = 0; i < v; i++)
+    {
+        if (matrix[i][i] < 0)
+        {
+            cout << "negative cycle" << endl;
+            return 0;
+        }
+    }
+    for (int i = 0; i < v; i++)
+    {
+        for (int j = 0; j < v; j++)
+        {
+            if (matrix[i][j] == 1e9)
+            {
+                matrix[i][j] = -1;
+            }
+        }
+    }
+    cout << "final cost matrix: " << endl;
+    for (int i = 0; i < v; i++)
+    {
+        for (int j = 0; j < v; j++)
+        {
+            cout << matrix[i][j] << "  ";
+        }
+        cout << endl;
+    }
+}
+**************************************************************************************************************************
+kmp string matching
+
+#include <iostream>
+using namespace std;
+ 
+// Function to implement the KMP algorithm
+void KMP(string text, string pattern)
+{
+    int m = text.length();
+    int n = pattern.length();
+ 
+    // if pattern is an empty string
+    if (n == 0)
+    {
+        cout << "The pattern occurs with shift 0";
+        return;
+    }
+ 
+    // if text's length is less than that of pattern's
+    if (m < n)
+    {
+        cout << "Pattern not found";
+        return;
+    }
+ 
+    // next[i] stores the index of the next best partial match
+    int next[n + 1];
+ 
+    for (int i = 0; i < n + 1; i++) {
+        next[i] = 0;
+    }
+ 
+    for (int i = 1; i < n; i++)
+    {
+        int j = next[i];
+ 
+        while (j > 0 && pattern[j] != pattern[i]) {
+            j = next[j];
+        }
+ 
+        if (j > 0 || pattern[j] == pattern[i]) {
+            next[i + 1] = j + 1;
+        }
+    }
+ 
+    for (int i = 0, j = 0; i < m; i++)
+    {
+        if (text[i] == pattern[j])
+        {
+            if (++j == n) {
+                cout << "The pattern occurs with shift " << i - j + 1 << endl;
+            }
+        }
+        else if (j > 0)
+        {
+            j = next[j];
+            i--;    // since `i` will be incremented in the next iteration
+        }
+    }
+}
+ 
+// Program to implement the KMP algorithm in C++
+int main()
+{
+    string text = "ABCABAABCABAC";
+    string pattern = "CAB";
+ 
+    KMP(text, pattern);
+ 
+    return 0;
+}
+****************************************************************************************************************************
